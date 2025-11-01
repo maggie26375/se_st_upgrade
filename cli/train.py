@@ -290,18 +290,23 @@ def train_main(cfg: DictConfig):
     logger.info("Trainer initialized")
     logger.info(f"Device: {cfg.get('accelerator', 'auto')}")
     
+    # Check if resuming from checkpoint
+    resume_ckpt_path = cfg.get('model', {}).get('checkpoint', None)
+
     # Initialize model based on config
+    # Note: When resuming from checkpoint via ckpt_path in trainer.fit(),
+    # we still need to initialize the model architecture (Lightning will load weights)
     logger.info("Initializing model...")
     model_name = cfg.get('model', {}).get('name', 'se_st_combined')
     model_kwargs = OmegaConf.to_container(cfg.get('model', {}).get('kwargs', {}), resolve=True)
-    
+
     if model_name == 'se_st_combined':
         logger.info("Creating SE_ST_CombinedModel")
         model = SE_ST_CombinedModel(**model_kwargs)
     else:
         logger.info("Creating StateTransitionPerturbationModel")
         model = StateTransitionPerturbationModel(**model_kwargs)
-    
+
     logger.info(f"Model initialized: {model.__class__.__name__}")
     
     # Initialize data module
@@ -319,9 +324,14 @@ def train_main(cfg: DictConfig):
     logger.info("Starting training...")
     logger.info(f"Max steps: {cfg.training.get('max_steps', 40000)}")
     logger.info(f"Batch size: {data_kwargs.get('batch_size', 16)}")
-    
+
+    if resume_ckpt_path:
+        logger.info(f"🔄 Resuming training from checkpoint: {resume_ckpt_path}")
+        logger.info("   This will restore model weights, optimizer state, and global step!")
+
     try:
-        trainer.fit(model, datamodule)
+        # Pass ckpt_path to trainer.fit() to resume training state
+        trainer.fit(model, datamodule, ckpt_path=resume_ckpt_path)
         logger.info("Training completed successfully!")
         
         # Save final model
