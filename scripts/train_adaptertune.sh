@@ -72,7 +72,7 @@ echo "  Output: $OUTPUT_DIR/$EXPERIMENT_NAME"
 echo ""
 
 # Run AdapterTune
-python -m cli.adaptertune \
+python -m se_st_upgrade.cli.adaptertune \
   model.checkpoint="$MODEL_CHECKPOINT" \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \

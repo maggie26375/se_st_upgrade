@@ -56,7 +56,7 @@ echo "  Output: $OUTPUT_DIR/$EXPERIMENT_NAME"
 echo ""
 
 # Run training
-python -m cli.train \
+python -m se_st_upgrade.cli.train \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \
   data.kwargs.num_workers=$NUM_WORKERS \
