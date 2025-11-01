@@ -1,0 +1,111 @@
+# RL-based optimization configuration for SE+ST Model
+defaults:
+  - se_st_combined
+  - _self_
+
+# Override experiment name
+name: se_st_rltune
+
+# RL Configuration
+rl:
+  # Environment settings
+  env:
+    state_dim: 512
+    num_control_cells: 128
+    max_episode_steps: 50
+    reward_type: negative_mse  # negative_mse, negative_energy, correlation
+
+  # Agent settings (PPO)
+  agent:
+    algorithm: ppo  # ppo, sac, td3
+    lr_actor: 3e-4
+    lr_critic: 1e-3
+    gamma: 0.99  # Discount factor
+    gae_lambda: 0.95  # GAE lambda
+    clip_ratio: 0.2  # PPO clip ratio
+    value_clip: 0.2  # Value function clip
+    entropy_coef: 0.01  # Entropy bonus
+    max_grad_norm: 0.5  # Gradient clipping
+
+  # Policy network
+  policy:
+    hidden_dims: [256, 256]
+    activation: relu
+    log_std_init: 0.0
+
+  # Value network
+  value:
+    hidden_dims: [256, 256]
+    activation: relu
+
+  # Training settings
+  training:
+    n_episodes: 1000  # Total episodes
+    max_steps_per_episode: 50
+    n_epochs_per_update: 10  # PPO update epochs
+    batch_size: 64  # Mini-batch size
+    rollout_buffer_size: 2048  # Steps before update
+    eval_frequency: 50  # Evaluate every N episodes
+    save_frequency: 100  # Save agent every N episodes
+
+  # Reward model (optional)
+  reward_model:
+    enabled: false  # Use learned reward model
+    checkpoint: null  # Path to pre-trained reward model
+    hidden_dims: [512, 256, 128]
+    train_epochs: 100
+    train_batch_size: 32
+
+# Model configuration (use pre-trained model)
+model:
+  name: se_st_combined
+  checkpoint: null  # Path to pre-trained SE+ST model (required)
+
+  kwargs:
+    se_model_path: "/large_storage/ctc/userspace/aadduri/SE-600M"
+    se_checkpoint_path: "/large_storage/ctc/userspace/aadduri/SE-600M/se600m_epoch15.ckpt"
+    se_embed_key: "X_state"
+    freeze_se_model: true
+
+    st_hidden_dim: 672
+    st_cell_set_len: 128
+    predict_residual: true
+    distributional_loss: energy
+    transformer_backbone_key: llama
+
+    lr: 1e-4
+    dropout: 0.1
+
+# Data configuration
+data:
+  kwargs:
+    toml_config_path: null  # Required
+    perturbation_features_file: null  # Required
+    num_workers: 4
+    batch_col: batch_var
+    pert_col: target_gene
+    cell_type_key: cell_type
+    control_pert: non-targeting
+
+# Training mode
+training_mode: rl_only  # rl_only, rl_plus_supervised, sequential
+
+# Logging
+wandb:
+  enabled: true
+  project: se-st-rltune
+  tags: [rl, reinforcement-learning, optimization]
+
+# Output
+output_dir: ./outputs
+save_top_k: 3
+
+# Device
+accelerator: auto
+devices: 1
+
+# RL-specific callbacks
+callbacks:
+  save_best_agent: true
+  save_trajectory_videos: false
+  log_episode_metrics: true

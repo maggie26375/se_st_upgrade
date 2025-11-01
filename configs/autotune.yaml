@@ -1,0 +1,109 @@
+# AutoTune Configuration for SE+ST Model Hyperparameter Optimization
+defaults:
+  - se_st_combined
+  - _self_
+
+# Override experiment name
+name: se_st_autotune
+
+# AutoTune specific configuration
+autotune:
+  # Optimization backend (optuna, ray)
+  backend: optuna
+
+  # Number of trials
+  n_trials: 50
+
+  # Study configuration
+  study:
+    direction: minimize  # minimize validation loss
+    sampler: TPESampler  # Tree-structured Parzen Estimator
+    pruner: MedianPruner  # Prune unpromising trials
+
+  # Search space configuration
+  search_space:
+    # ST Model Architecture
+    st_hidden_dim:
+      type: categorical
+      choices: [512, 672, 768, 1024]
+
+    st_cell_set_len:
+      type: categorical
+      choices: [64, 128, 256]
+
+    # Transformer Configuration
+    num_attention_heads:
+      type: categorical
+      choices: [4, 8, 12, 16]
+
+    num_hidden_layers:
+      type: int
+      low: 2
+      high: 8
+      step: 2
+
+    # Training Hyperparameters
+    lr:
+      type: loguniform
+      low: 1e-5
+      high: 1e-3
+
+    batch_size:
+      type: categorical
+      choices: [8, 16, 32, 64]
+
+    dropout:
+      type: uniform
+      low: 0.0
+      high: 0.3
+
+    # Loss Configuration
+    distributional_loss:
+      type: categorical
+      choices: [energy, sinkhorn, mse]
+
+    blur:
+      type: uniform
+      low: 0.01
+      high: 0.1
+
+    # Optimization
+    gradient_clip_val:
+      type: categorical
+      choices: [null, 0.5, 1.0, 2.0]
+
+    accumulate_grad_batches:
+      type: categorical
+      choices: [1, 2, 4]
+
+  # Early stopping for trials
+  trial_early_stopping:
+    enabled: true
+    patience: 5
+    min_delta: 0.01
+
+  # Resource allocation per trial
+  resources:
+    max_steps: 5000  # Reduced for faster trials
+    val_check_interval: 500
+    devices: 1
+    precision: "16-mixed"
+
+  # Best model selection
+  best_model:
+    metric: val_loss
+    mode: min
+    save_path: ${output_dir}/${name}/best_model
+
+# Override training config for AutoTune
+training:
+  max_steps: ${autotune.resources.max_steps}
+  val_check_interval: ${autotune.resources.val_check_interval}
+  early_stopping: true
+  patience: 5
+
+# Logging
+wandb:
+  enabled: true
+  project: se-st-autotune
+  tags: [autotune, hyperparameter-search]
