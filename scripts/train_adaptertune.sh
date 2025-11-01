@@ -21,7 +21,7 @@ echo "Starting AdapterTune at: $(date)"
 echo ""
 
 # Model checkpoint to fine-tune (update this path!)
-MODEL_CHECKPOINT="competition/baseline_40k/final_model.ckpt"
+MODEL_CHECKPOINT="competition/baseline_80k/final_model.ckpt"
 
 # Check if checkpoint exists
 if [ ! -f "$MODEL_CHECKPOINT" ]; then

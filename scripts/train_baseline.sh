@@ -1,6 +1,6 @@
 #!/bin/bash
 # SE+ST Upgrade - Baseline Training Script
-# Train base model with 40K steps
+# Train base model with 80K steps (baseline for all comparisons)
 
 set -e  # Exit on error
 
@@ -21,9 +21,9 @@ echo "Starting training at: $(date)"
 echo ""
 
 # Training parameters
-MAX_STEPS=40000
+MAX_STEPS=80000  # 80K for best results (your previous successful training)
 BATCH_SIZE=8
-VAL_CHECK_INTERVAL=100
+VAL_CHECK_INTERVAL=2000  # Check validation every 2K steps
 NUM_WORKERS=4
 
 # Data paths
@@ -40,7 +40,7 @@ SE_CHECKPOINT_PATH="SE-600M/se600m_epoch15.ckpt"
 
 # Output configuration
 OUTPUT_DIR="competition"
-EXPERIMENT_NAME="baseline_40k"
+EXPERIMENT_NAME="baseline_80k"  # Changed from baseline_40k
 
 echo "Configuration:"
 echo "  Max steps: $MAX_STEPS"
