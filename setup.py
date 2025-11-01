@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 import os
 
 setup(
-    name="se-st-upgrade",
+    name="se_st_upgrade",
     version="0.1.0",
     author="maggie26375",
     description="SE+ST Upgrade with AutoTune, AdapterTune, and RL optimization",
@@ -41,11 +41,11 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "se-st-train=cli.train:main",
-            "se-st-infer=cli.infer:main",
-            "se-st-adaptertune=cli.adaptertune:main",
-            "se-st-rltune=cli.rltune:main",
-            "se-st-autotune=cli.autotune:main",
+            "se-st-train=se_st_upgrade.cli.train:main",
+            "se-st-infer=se_st_upgrade.cli.infer:main",
+            "se-st-adaptertune=se_st_upgrade.cli.adaptertune:main",
+            "se-st-rltune=se_st_upgrade.cli.rltune:main",
+            "se-st-autotune=se_st_upgrade.cli.autotune:main",
         ],
     },
     include_package_data=True,
