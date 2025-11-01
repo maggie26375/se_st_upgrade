@@ -32,9 +32,9 @@ if [ ! -f "$MODEL_CHECKPOINT" ]; then
 fi
 
 # RL training parameters
-N_EPISODES=2000
-ROLLOUT_BUFFER_SIZE=4096
-BATCH_SIZE=128
+N_EPISODES=100  # Training epochs
+LEARNING_RATE=1e-5  # Low LR for fine-tuning
+BATCH_SIZE=4
 REWARD_TYPE="competition"  # Use EXACT competition scoring!
 
 # Data paths
@@ -56,9 +56,12 @@ EXPERIMENT_NAME="rl_from_adapter"
 
 echo "Configuration:"
 echo "  Base model: $MODEL_CHECKPOINT (with adapters)"
-echo "  Episodes: $N_EPISODES"
-echo "  Reward type: $REWARD_TYPE"
+echo "  Episodes (epochs): $N_EPISODES"
+echo "  Learning rate: $LEARNING_RATE"
+echo "  Reward type: $REWARD_TYPE (EXACT competition scoring)"
 echo "  Output: $OUTPUT_DIR/$EXPERIMENT_NAME"
+echo ""
+echo "⚠️  This will take approximately $(($N_EPISODES / 10)) hours on A100"
 echo ""
 
 # Run RL training
@@ -75,7 +78,7 @@ python -m cli.rltune \
   model.kwargs.se_checkpoint_path="$SE_CHECKPOINT_PATH" \
   rl.env.reward_type="$REWARD_TYPE" \
   rl.training.n_episodes=$N_EPISODES \
-  rl.training.rollout_buffer_size=$ROLLOUT_BUFFER_SIZE \
+  rl.training.learning_rate=$LEARNING_RATE \
   rl.training.batch_size=$BATCH_SIZE \
   output_dir="$OUTPUT_DIR" \
   name="$EXPERIMENT_NAME"
@@ -84,9 +87,13 @@ echo ""
 echo "========================================="
 echo "✅ RL optimization (on adapter model) completed!"
 echo "========================================="
-echo "Best agent saved to: $OUTPUT_DIR/$EXPERIMENT_NAME/best_agent.pt"
+echo "Best model saved to: $OUTPUT_DIR/$EXPERIMENT_NAME/best_model.ckpt"
+echo "Final model saved to: $OUTPUT_DIR/$EXPERIMENT_NAME/final_model.ckpt"
 echo "RL training finished at: $(date)"
 echo ""
 echo "This is your FINAL optimized model:"
 echo "  Base model → AdapterTune → RL optimization"
+echo ""
+echo "✅ You can now use these .ckpt files for inference!"
+echo "   se-st-infer --checkpoint $OUTPUT_DIR/$EXPERIMENT_NAME/best_model.ckpt ..."
 echo ""

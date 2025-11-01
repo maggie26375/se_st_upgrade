@@ -1,4 +1,5 @@
 # RL-based optimization configuration for SE+ST Model
+# Uses policy gradient to directly fine-tune model weights
 defaults:
   - se_st_combined
   - _self_
@@ -8,53 +9,17 @@ name: se_st_rltune
 
 # RL Configuration
 rl:
-  # Environment settings
+  # Environment/Reward settings
   env:
-    state_dim: 512
-    num_control_cells: 128
-    max_episode_steps: 50
-    reward_type: competition  # competition (EXACT scoring), negative_mse, negative_energy, correlation
-
-  # Agent settings (PPO)
-  agent:
-    algorithm: ppo  # ppo, sac, td3
-    lr_actor: 3e-4
-    lr_critic: 1e-3
-    gamma: 0.99  # Discount factor
-    gae_lambda: 0.95  # GAE lambda
-    clip_ratio: 0.2  # PPO clip ratio
-    value_clip: 0.2  # Value function clip
-    entropy_coef: 0.01  # Entropy bonus
-    max_grad_norm: 0.5  # Gradient clipping
-
-  # Policy network
-  policy:
-    hidden_dims: [256, 256]
-    activation: relu
-    log_std_init: 0.0
-
-  # Value network
-  value:
-    hidden_dims: [256, 256]
-    activation: relu
+    reward_type: competition  # competition (EXACT DES+PDS+MAE), mse, correlation
 
   # Training settings
   training:
-    n_episodes: 2000  # Increased for better convergence (was 1000)
-    max_steps_per_episode: 50
-    n_epochs_per_update: 10  # PPO update epochs
-    batch_size: 128  # Larger mini-batch (was 64)
-    rollout_buffer_size: 4096  # More experience before update (was 2048)
-    eval_frequency: 100  # Evaluate every N episodes (was 50)
-    save_frequency: 200  # Save agent every N episodes (was 100)
-
-  # Reward model (optional)
-  reward_model:
-    enabled: false  # Use learned reward model
-    checkpoint: null  # Path to pre-trained reward model
-    hidden_dims: [512, 256, 128]
-    train_epochs: 100
-    train_batch_size: 32
+    n_episodes: 100  # Number of training epochs (each epoch = full pass through dataset)
+    learning_rate: 1e-5  # Low learning rate for fine-tuning
+    batch_size: 4  # Batch size for training
+    eval_frequency: 10  # Evaluate every N episodes
+    save_frequency: 50  # Save checkpoint every N episodes
 
 # Model configuration (use pre-trained model)
 model:
@@ -73,7 +38,6 @@ model:
     distributional_loss: energy
     transformer_backbone_key: llama
 
-    lr: 1e-4
     dropout: 0.1
 
 # Data configuration
@@ -87,12 +51,9 @@ data:
     cell_type_key: cell_type
     control_pert: non-targeting
 
-# Training mode
-training_mode: rl_only  # rl_only, rl_plus_supervised, sequential
-
 # Logging
 wandb:
-  enabled: true
+  enabled: false  # Disable wandb by default
   project: se-st-rltune
   tags: [rl, reinforcement-learning, optimization]
 
@@ -103,9 +64,3 @@ save_top_k: 3
 # Device
 accelerator: auto
 devices: 1
-
-# RL-specific callbacks
-callbacks:
-  save_best_agent: true
-  save_trajectory_videos: false
-  log_episode_metrics: true

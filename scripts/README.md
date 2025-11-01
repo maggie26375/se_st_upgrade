@@ -74,11 +74,11 @@ python -m cli.train \
 - **GPU**: 1× A100
 
 ### `train_rl.sh`
-- **Purpose**: RL optimization with EXACT competition scoring
-- **Time**: ~10 hours (2K episodes)
-- **Output**: `competition/rl_optimized/best_agent.pt`
+- **Purpose**: RL fine-tuning with EXACT competition scoring
+- **Time**: ~10 hours (100 epochs)
+- **Output**: `competition/rl_optimized/best_model.ckpt`
 - **GPU**: 1× A100
-- **Metrics**: Optimizes DES + PDS + MAE directly
+- **Metrics**: Directly optimizes DES + PDS + MAE using policy gradient
 
 ### `train_adaptertune.sh`
 - **Purpose**: Parameter-efficient fine-tuning with LoRA
@@ -88,9 +88,9 @@ python -m cli.train \
 - **Benefit**: 95% parameter reduction, 3-5× faster
 
 ### `train_rl_from_adapter.sh`
-- **Purpose**: RL on adapter-tuned model
-- **Time**: ~10 hours (2K episodes)
-- **Output**: `competition/rl_from_adapter/best_agent.pt`
+- **Purpose**: RL fine-tuning on adapter-tuned model
+- **Time**: ~10 hours (100 epochs)
+- **Output**: `competition/rl_from_adapter/best_model.ckpt`
 - **GPU**: 1× A100
 
 ### `train_autotune.sh`
@@ -207,8 +207,8 @@ competition/
 │   ├── checkpoints/               # Intermediate checkpoints
 │   └── config.yaml                # Training config
 ├── rl_optimized/
-│   ├── best_agent.pt              # Best RL agent
-│   ├── final_agent.pt             # Final RL agent
+│   ├── best_model.ckpt            # Best RL-optimized model
+│   ├── final_model.ckpt           # Final RL-optimized model
 │   └── training_stats.pt          # Training statistics
 ├── adaptertune/
 │   ├── final_adapters.pt          # Adapter weights (small!)
