@@ -20,6 +20,11 @@ echo "Working directory: $(pwd)"
 echo "Starting training at: $(date)"
 echo ""
 
+# Set PYTHONPATH so Python can find se_st_upgrade package
+export PYTHONPATH=/workspace/se_st_upgrade:$PYTHONPATH
+echo "PYTHONPATH set to: $PYTHONPATH"
+echo ""
+
 # Training parameters
 MAX_STEPS=80000  # 80K for best results (your previous successful training)
 BATCH_SIZE=8

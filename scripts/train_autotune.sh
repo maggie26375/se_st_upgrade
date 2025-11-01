@@ -18,6 +18,11 @@ cd /workspace/se_st_upgrade || {
 
 echo "Working directory: $(pwd)"
 echo "Starting AutoTune at: $(date)"
+
+# Set PYTHONPATH so Python can find se_st_upgrade package
+export PYTHONPATH=/workspace/se_st_upgrade:$PYTHONPATH
+echo "PYTHONPATH set to: $PYTHONPATH"
+echo ""
 echo ""
 
 # AutoTune parameters
