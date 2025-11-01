@@ -38,17 +38,17 @@ model:
 
 # Training configuration (faster than full training)
 training:
-  max_steps: 10000  # Fewer steps needed for adapter training
+  max_steps: 20000  # Increased for better convergence (was 10000)
   batch_size: 32  # Can use larger batch size with adapters
   lr: 1e-4
-  ckpt_every_n_steps: 2000
+  ckpt_every_n_steps: 5000  # Save less frequently (was 2000)
   log_every_n_steps: 50
-  val_check_interval: 500
+  val_check_interval: 1000  # Validate less frequently (was 500)
   precision: "16-mixed"
   gradient_clip_val: 1.0
   accumulate_grad_batches: 1
   early_stopping: true
-  patience: 5
+  patience: 10  # More patience (was 5)
 
 # Adapter saving configuration
 adapter:

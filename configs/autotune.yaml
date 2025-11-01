@@ -84,8 +84,8 @@ autotune:
 
   # Resource allocation per trial
   resources:
-    max_steps: 5000  # Reduced for faster trials
-    val_check_interval: 500
+    max_steps: 10000  # Increased for better evaluation (was 5000)
+    val_check_interval: 1000  # Less frequent validation (was 500)
     devices: 1
     precision: "16-mixed"
 

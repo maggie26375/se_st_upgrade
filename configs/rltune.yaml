@@ -40,13 +40,13 @@ rl:
 
   # Training settings
   training:
-    n_episodes: 1000  # Total episodes
+    n_episodes: 2000  # Increased for better convergence (was 1000)
     max_steps_per_episode: 50
     n_epochs_per_update: 10  # PPO update epochs
-    batch_size: 64  # Mini-batch size
-    rollout_buffer_size: 2048  # Steps before update
-    eval_frequency: 50  # Evaluate every N episodes
-    save_frequency: 100  # Save agent every N episodes
+    batch_size: 128  # Larger mini-batch (was 64)
+    rollout_buffer_size: 4096  # More experience before update (was 2048)
+    eval_frequency: 100  # Evaluate every N episodes (was 50)
+    save_frequency: 200  # Save agent every N episodes (was 100)
 
   # Reward model (optional)
   reward_model:
