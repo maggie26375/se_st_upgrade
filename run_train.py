@@ -10,7 +10,7 @@ repo_root = Path(__file__).parent
 sys.path.insert(0, str(repo_root))
 
 # Now import and run the training script
-from cli.train import main
+from se_st_upgrade.cli.train import main
 
 if __name__ == "__main__":
     sys.exit(main())
