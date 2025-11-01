@@ -71,8 +71,8 @@ echo "  Batch size: $BATCH_SIZE"
 echo "  Output: $OUTPUT_DIR/$EXPERIMENT_NAME"
 echo ""
 
-# Run AdapterTune
-python cli/adaptertune.py \
+# Run AdapterTune (using wrapper script that handles Python path)
+python run_adaptertune.py \
   model.checkpoint="$MODEL_CHECKPOINT" \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \

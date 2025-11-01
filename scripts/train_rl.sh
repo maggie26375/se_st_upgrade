@@ -71,8 +71,8 @@ echo ""
 echo "⚠️  This will take approximately $(($N_EPISODES / 10)) hours on A100"
 echo ""
 
-# Run RL training
-python cli/rltune.py \
+# Run RL training (using wrapper script that handles Python path)
+python run_rltune.py \
   model.checkpoint="$MODEL_CHECKPOINT" \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \

@@ -55,8 +55,8 @@ echo "  ESM2 features: $ESM2_FEATURES"
 echo "  Output: $OUTPUT_DIR/$EXPERIMENT_NAME"
 echo ""
 
-# Run training (direct file execution instead of module)
-python cli/train.py \
+# Run training (using wrapper script that handles Python path)
+python run_train.py \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \
   data.kwargs.num_workers=$NUM_WORKERS \

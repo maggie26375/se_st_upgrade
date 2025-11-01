@@ -56,8 +56,8 @@ echo "⚠️  This will take approximately $(($N_TRIALS * 2)) hours"
 echo "    (assuming ~2 hours per trial on A100)"
 echo ""
 
-# Run AutoTune
-python cli/autotune.py \
+# Run AutoTune (using wrapper script that handles Python path)
+python run_autotune.py \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \
   data.kwargs.num_workers=$NUM_WORKERS \
