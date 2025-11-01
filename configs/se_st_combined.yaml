@@ -59,6 +59,12 @@ model:
   checkpoint: null
   
   kwargs:
+    # Model Dimensions (REQUIRED)
+    input_dim: 18080  # Input gene expression dimension
+    hidden_dim: 512   # Hidden dimension for combined model
+    output_dim: 18080 # Output gene expression dimension
+    pert_dim: 5120    # Perturbation embedding dimension (from ESM2)
+
     # SE Model Configuration
     se_model_path: "/large_storage/ctc/userspace/aadduri/SE-600M"  # Path to SE model directory
     se_checkpoint_path: "/large_storage/ctc/userspace/aadduri/SE-600M/se600m_epoch15.ckpt"  # Path to SE checkpoint
