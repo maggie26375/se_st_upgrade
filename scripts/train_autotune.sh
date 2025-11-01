@@ -57,7 +57,7 @@ echo "    (assuming ~2 hours per trial on A100)"
 echo ""
 
 # Run AutoTune
-python -m se_st_upgrade.cli.autotune \
+python cli/autotune.py \
   data.kwargs.toml_config_path="$TOML_CONFIG" \
   data.kwargs.perturbation_features_file="$ESM2_FEATURES" \
   data.kwargs.num_workers=$NUM_WORKERS \
@@ -83,7 +83,7 @@ echo "Visualization: $OUTPUT_DIR/$EXPERIMENT_NAME/optimization_history.html"
 echo "AutoTune finished at: $(date)"
 echo ""
 echo "Next step: Train with best configuration"
-echo "  python -m se_st_upgrade.cli.train \\"
+echo "  python cli/train.py \\"
 echo "    --config-path $OUTPUT_DIR/$EXPERIMENT_NAME \\"
 echo "    --config-name best_config \\"
 echo "    training.max_steps=80000"
