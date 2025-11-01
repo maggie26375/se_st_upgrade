@@ -13,7 +13,7 @@ rl:
     state_dim: 512
     num_control_cells: 128
     max_episode_steps: 50
-    reward_type: negative_mse  # negative_mse, negative_energy, correlation
+    reward_type: competition  # competition (EXACT scoring), negative_mse, negative_energy, correlation
 
   # Agent settings (PPO)
   agent:

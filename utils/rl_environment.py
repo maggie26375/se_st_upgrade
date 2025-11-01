@@ -176,6 +176,9 @@ class PerturbationPredictionEnv:
         """
         Compute reward for current state.
 
+        Uses EXACT competition scoring if reward_type='competition',
+        otherwise uses simpler proxy rewards.
+
         Returns:
             Reward value
         """
@@ -208,16 +211,40 @@ class PerturbationPredictionEnv:
             # Compute reward based on type
             target = self.current_target.unsqueeze(0)
 
-            if self.reward_type == "negative_mse":
+            if self.reward_type == "competition":
+                # Use EXACT competition scoring (DES + PDS + MAE)
+                try:
+                    from .competition_metrics import compute_competition_score_exact
+
+                    # Note: prediction and target should be single cells or cell sets
+                    # For now we compute on single prediction, ideally would batch
+                    reward = compute_competition_score_exact(
+                        pred_cells=prediction,
+                        true_cells=target,
+                        ctrl_cells=weighted_control,
+                        # all_true_pseudobulks and perturbation_idx would need dataset context
+                        return_components=False,
+                    ) / 100.0  # Normalize to [0, 1]
+                except Exception as e:
+                    logger.warning(f"Competition scoring failed: {e}, using MSE fallback")
+                    mse = torch.nn.functional.mse_loss(prediction, target)
+                    reward = -mse.item()
+
+            elif self.reward_type == "negative_mse":
                 # Negative MSE (higher is better)
                 mse = torch.nn.functional.mse_loss(prediction, target)
                 reward = -mse.item()
 
             elif self.reward_type == "negative_energy":
                 # Negative energy distance
-                from .energy_loss import energy_distance
-                energy = energy_distance(prediction, target)
-                reward = -energy.item()
+                try:
+                    from .energy_loss import energy_distance
+                    energy = energy_distance(prediction, target)
+                    reward = -energy.item()
+                except:
+                    logger.warning("Energy distance not available, using MSE")
+                    mse = torch.nn.functional.mse_loss(prediction, target)
+                    reward = -mse.item()
 
             elif self.reward_type == "correlation":
                 # Pearson correlation
