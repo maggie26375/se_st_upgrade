@@ -13,8 +13,8 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 
 # Import training utilities
-from se_st_upgrade.cli.train import SE_ST_DataModule, setup_logger, setup_callbacks
-from se_st_upgrade.models.adapter_se_st import AdapterSE_ST_Model
+from cli.train import SE_ST_DataModule, setup_logger, setup_callbacks
+from models.adapter_se_st import AdapterSE_ST_Model
 
 # Configure logging
 logging.basicConfig(

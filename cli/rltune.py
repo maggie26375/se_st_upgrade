@@ -25,9 +25,9 @@ import numpy as np
 from tqdm import tqdm
 
 # Import components
-from se_st_upgrade.models.se_st_combined import SE_ST_CombinedModel
-from se_st_upgrade.data.perturbation_dataset import PerturbationDataset
-from se_st_upgrade.utils.competition_metrics import compute_competition_score_exact
+from models.se_st_combined import SE_ST_CombinedModel
+from data.perturbation_dataset import PerturbationDataset
+from utils.competition_metrics import compute_competition_score_exact
 
 # Configure logging
 logging.basicConfig(

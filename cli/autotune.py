@@ -14,9 +14,9 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint, EarlyStopping
 
 # Import training utilities
-from se_st_upgrade.cli.train import SE_ST_DataModule, setup_logger
-from se_st_upgrade.models.se_st_combined import SE_ST_CombinedModel
-from se_st_upgrade.utils.hyperparameter_search import OptunaSearcher, TrialPruningCallback
+from cli.train import SE_ST_DataModule, setup_logger
+from models.se_st_combined import SE_ST_CombinedModel
+from utils.hyperparameter_search import OptunaSearcher, TrialPruningCallback
 
 # Configure logging
 logging.basicConfig(

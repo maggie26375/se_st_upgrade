@@ -3,11 +3,11 @@ SE+ST Combined Model Components
 
 Use lazy imports to avoid loading all dependencies at import time.
 Import specific modules as needed:
-    from se_st_upgrade.models.se_st_combined import SE_ST_CombinedModel
-    from se_st_upgrade.models.base import PerturbationModel
-    from se_st_upgrade.models.state_transition import StateTransitionPerturbationModel
-    from se_st_upgrade.models.decoders import FinetuneVCICountsDecoder
-    from se_st_upgrade.models.decoders_nb import NBDecoder, nb_nll
+    from models.se_st_combined import SE_ST_CombinedModel
+    from models.base import PerturbationModel
+    from models.state_transition import StateTransitionPerturbationModel
+    from models.decoders import FinetuneVCICountsDecoder
+    from models.decoders_nb import NBDecoder, nb_nll
 """
 
 __all__ = [
