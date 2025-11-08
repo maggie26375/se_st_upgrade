@@ -183,7 +183,9 @@ def train_step_with_policy_gradient(
                 mse = F.mse_loss(pred, target_flat)
                 reward = -mse.item()
         elif reward_type == "mse":
-            mse = F.mse_loss(pred, target)
+            # Ensure target shape matches pred
+            target_flat = target.reshape(-1, target.shape[-1]) if len(target.shape) > 2 else target
+            mse = F.mse_loss(pred, target_flat)
             reward = -mse.item()
         elif reward_type == "correlation":
             pred_flat = pred.flatten()
