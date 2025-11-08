@@ -69,21 +69,31 @@ def compute_episode_reward(
                 # pred and target should be [n_cells, n_genes]
                 ctrl_cells = batch['ctrl_cell_emb']
 
+                # Ensure all tensors have compatible shapes
+                if len(target.shape) == 3:
+                    target_2d = target.reshape(-1, target.shape[-1])
+                    ctrl_2d = ctrl_cells.reshape(-1, ctrl_cells.shape[-1])
+                else:
+                    target_2d = target
+                    ctrl_2d = ctrl_cells
+
                 reward = compute_competition_score_exact(
                     pred_cells=pred,
-                    true_cells=target,
-                    ctrl_cells=ctrl_cells,
+                    true_cells=target_2d,
+                    ctrl_cells=ctrl_2d,
                     return_components=False,
                 ) / 100.0  # Normalize to [0, 1]
 
             except Exception as e:
                 logger.warning(f"Competition scoring failed: {e}, using MSE fallback")
-                mse = F.mse_loss(pred, target)
+                target_flat = target.reshape(-1, target.shape[-1]) if len(target.shape) > 2 else target
+                mse = F.mse_loss(pred, target_flat)
                 reward = -mse.item()
 
         elif reward_type == "mse":
             # Negative MSE (we want to minimize MSE, so maximize -MSE)
-            mse = F.mse_loss(pred, target)
+            target_flat = target.reshape(-1, target.shape[-1]) if len(target.shape) > 2 else target
+            mse = F.mse_loss(pred, target_flat)
             reward = -mse.item()
 
         elif reward_type == "correlation":
@@ -140,15 +150,37 @@ def train_step_with_policy_gradient(
         if reward_type == "competition":
             try:
                 ctrl_cells = batch['ctrl_cell_emb']
-                reward = compute_competition_score_exact(
-                    pred_cells=pred,
-                    true_cells=target,
-                    ctrl_cells=ctrl_cells,
-                    return_components=False,
-                ) / 100.0
+
+                # Ensure all tensors have compatible shapes for competition metrics
+                # Model output is [batch_size*cells_per_sample, genes]
+                # But batch data might be [batch_size, cells_per_sample, genes]
+                # Reshape to 2D [total_cells, genes] if needed
+                if len(target.shape) == 3:
+                    batch_size, cells_per_sample, n_genes = target.shape
+                    target_2d = target.reshape(-1, n_genes)
+                    ctrl_2d = ctrl_cells.reshape(-1, n_genes)
+                else:
+                    target_2d = target
+                    ctrl_2d = ctrl_cells
+
+                # Ensure pred matches the same shape
+                if pred.shape[0] != target_2d.shape[0]:
+                    logger.warning(f"Shape mismatch: pred {pred.shape} vs target {target_2d.shape}")
+                    # Fallback to MSE
+                    mse = F.mse_loss(pred, target_2d)
+                    reward = -mse.item()
+                else:
+                    reward = compute_competition_score_exact(
+                        pred_cells=pred,
+                        true_cells=target_2d,
+                        ctrl_cells=ctrl_2d,
+                        return_components=False,
+                    ) / 100.0
             except Exception as e:
+                logger.warning(f"Competition scoring failed: {e}, using MSE fallback")
                 # Fallback to MSE
-                mse = F.mse_loss(pred, target)
+                target_flat = target.reshape(-1, target.shape[-1]) if len(target.shape) > 2 else target
+                mse = F.mse_loss(pred, target_flat)
                 reward = -mse.item()
         elif reward_type == "mse":
             mse = F.mse_loss(pred, target)
@@ -170,7 +202,9 @@ def train_step_with_policy_gradient(
     advantage = reward - baseline_reward
 
     # Compute prediction loss (MSE)
-    mse_loss = F.mse_loss(pred, target)
+    # Ensure target shape matches pred
+    target_flat = target.reshape(-1, target.shape[-1]) if len(target.shape) > 2 else target
+    mse_loss = F.mse_loss(pred, target_flat)
 
     # Policy gradient: if reward is high (advantage > 0), we want to reduce loss more
     # if reward is low (advantage < 0), we want to increase loss (discourage this prediction)
