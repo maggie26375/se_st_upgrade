@@ -152,7 +152,16 @@ class PerturbationDataset(Dataset):
         
         # Load perturbation embeddings (ESM2 features)
         self.pert_embedding_map = self._load_perturbation_embeddings()
-        
+
+        # Compute mean embedding for fallback (when perturbation not found)
+        if len(self.pert_embedding_map) > 0:
+            all_embeddings = torch.stack(list(self.pert_embedding_map.values()))
+            self.mean_embedding = all_embeddings.mean(dim=0)
+            logger.info(f"✅ Computed mean embedding with shape {self.mean_embedding.shape} for fallback")
+        else:
+            self.mean_embedding = None
+            logger.warning("No embeddings loaded - fallback embedding will be None!")
+
         # Storage for sentence metadata (indices only, not data!)
         # Each item: {h5_path, data_key, pert_indices, ctrl_indices, pert_emb, metadata}
         self.sentence_specs: List[Dict] = []
@@ -313,26 +322,32 @@ class PerturbationDataset(Dataset):
         
         # Get unique perturbations (excluding control)
         unique_perts = set()
+        unique_cell_types = set()
         for (pert, batch, ct), indices in cells_by_pert_batch.items():
+            unique_cell_types.add(ct)
             if pert != self.control_pert:
                 unique_perts.add(pert)
-        
+
         logger.info(f"Found {len(unique_perts)} unique perturbations (excluding control)")
+        logger.info(f"🔍 Cell types in {Path(h5_path).name}: {sorted(unique_cell_types)}")
         
         # Get zeroshot configuration
         zeroshot_config = self.config.get("zeroshot", {})
         
-        # Build a map of cell type to split
+        # Build a map of cell type to split (case-insensitive)
         celltype_splits = {}
+        celltype_splits_lower = {}  # lowercase version for case-insensitive matching
         for key, split_val in zeroshot_config.items():
             # key format: "dataset_name.celltype"
             if "." in key:
                 parts = key.split(".", 1)
                 if parts[0] == dataset_name:
                     celltype_splits[parts[1]] = split_val
+                    celltype_splits_lower[parts[1].lower()] = split_val
         
         logger.info(f"Zeroshot cell type splits: {celltype_splits}")
-        
+        logger.info(f"🎯 Current dataset split: {self.split}")
+
         # Create pairs for each perturbation
         n_pairs_created = 0
         for pert_name in unique_perts:
@@ -346,10 +361,18 @@ class PerturbationDataset(Dataset):
             for (p, batch, ct), indices in cells_by_pert_batch.items():
                 if p == pert_name:
                     # Check if this cell type should be included in current split
-                    ct_split = celltype_splits.get(ct, "train")  # default to train
+                    # Try exact match first, then case-insensitive
+                    ct_split = celltype_splits.get(ct)
+                    if ct_split is None:
+                        ct_split = celltype_splits_lower.get(ct.lower(), "train")  # default to train
+
                     if ct_split == self.split:
                         all_pert_cells.extend([(idx, batch, ct) for idx in indices])
-            
+                    else:
+                        # Debug: show why cells are being filtered out
+                        if len(indices) > 0:
+                            logger.debug(f"  Skipping {len(indices)} cells of type '{ct}' for pert '{pert_name}' (ct_split={ct_split}, current_split={self.split})")
+
             if len(all_pert_cells) == 0:
                 continue
             
@@ -366,8 +389,10 @@ class PerturbationDataset(Dataset):
             
             # Try to create a sentence from cells with the same batch/cell type
             for (batch_name, cell_type), pert_indices in pert_cells_by_context.items():
-                # Check split
-                ct_split = celltype_splits.get(cell_type, "train")
+                # Check split (case-insensitive)
+                ct_split = celltype_splits.get(cell_type)
+                if ct_split is None:
+                    ct_split = celltype_splits_lower.get(cell_type.lower(), "train")
                 if ct_split != self.split:
                     continue
                 
@@ -407,28 +432,36 @@ class PerturbationDataset(Dataset):
     def _get_pert_embedding(self, pert_name: str) -> Optional[torch.Tensor]:
         """
         Get perturbation embedding by name.
-        Handles case variations and missing embeddings.
+        Handles case variations and uses mean embedding as fallback for missing perturbations.
+
+        This ensures validation/test sets don't get empty even if some perturbations
+        (like TAZ, YAP1) are missing from the ESM2 embedding file.
         """
         # Try exact match first
         if pert_name in self.pert_embedding_map:
             return self.pert_embedding_map[pert_name]
-        
+
         # Try case variations
         for key in self.pert_embedding_map.keys():
             if key.lower() == pert_name.lower():
                 logger.debug(f"Found embedding for '{pert_name}' using case-insensitive match: '{key}'")
                 return self.pert_embedding_map[key]
-        
+
         # Try uppercase (common for gene names)
         if pert_name.upper() in self.pert_embedding_map:
             return self.pert_embedding_map[pert_name.upper()]
-        
+
         # Try lowercase
         if pert_name.lower() in self.pert_embedding_map:
             return self.pert_embedding_map[pert_name.lower()]
-        
-        logger.warning(f"No embedding found for '{pert_name}', skipping")
-        return None
+
+        # Fallback: use mean embedding
+        if self.mean_embedding is not None:
+            logger.warning(f"⚠️ No embedding found for '{pert_name}', using mean embedding as fallback")
+            return self.mean_embedding
+        else:
+            logger.warning(f"❌ No embedding found for '{pert_name}' and no fallback available, skipping")
+            return None
     
     def __len__(self) -> int:
         return len(self.sentence_specs)
