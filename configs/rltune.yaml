@@ -1,0 +1,66 @@
+# RL-based optimization configuration for SE+ST Model
+# Uses policy gradient to directly fine-tune model weights
+defaults:
+  - se_st_combined
+  - _self_
+
+# Override experiment name
+name: se_st_rltune
+
+# RL Configuration
+rl:
+  # Environment/Reward settings
+  env:
+    reward_type: competition  # competition (EXACT DES+PDS+MAE), mse, correlation
+
+  # Training settings
+  training:
+    n_episodes: 100  # Number of training epochs (each epoch = full pass through dataset)
+    learning_rate: 1e-5  # Low learning rate for fine-tuning
+    batch_size: 4  # Batch size for training
+    eval_frequency: 10  # Evaluate every N episodes
+    save_frequency: 50  # Save checkpoint every N episodes
+
+# Model configuration (use pre-trained model)
+model:
+  name: se_st_combined
+  checkpoint: null  # Path to pre-trained SE+ST model (required)
+
+  kwargs:
+    se_model_path: "/large_storage/ctc/userspace/aadduri/SE-600M"
+    se_checkpoint_path: "/large_storage/ctc/userspace/aadduri/SE-600M/se600m_epoch15.ckpt"
+    se_embed_key: "X_state"
+    freeze_se_model: true
+
+    st_hidden_dim: 672
+    st_cell_set_len: 128
+    predict_residual: true
+    distributional_loss: energy
+    transformer_backbone_key: llama
+
+    dropout: 0.1
+
+# Data configuration
+data:
+  kwargs:
+    toml_config_path: null  # Required
+    perturbation_features_file: null  # Required
+    num_workers: 4
+    batch_col: batch_var
+    pert_col: target_gene
+    cell_type_key: cell_type
+    control_pert: non-targeting
+
+# Logging
+wandb:
+  enabled: false  # Disable wandb by default
+  project: se-st-rltune
+  tags: [rl, reinforcement-learning, optimization]
+
+# Output
+output_dir: ./outputs
+save_top_k: 3
+
+# Device
+accelerator: auto
+devices: 1

@@ -1,0 +1,77 @@
+# AdapterTune Configuration for SE+ST Model Parameter-Efficient Fine-Tuning
+defaults:
+  - se_st_combined
+  - _self_
+
+# Override experiment name
+name: se_st_adaptertune
+
+# Model configuration
+model:
+  name: adapter_se_st  # Use adapter version
+
+  kwargs:
+    # Base model parameters (inherited from se_st_combined)
+    se_model_path: "/large_storage/ctc/userspace/aadduri/SE-600M"
+    se_checkpoint_path: "/large_storage/ctc/userspace/aadduri/SE-600M/se600m_epoch15.ckpt"
+    se_embed_key: "X_state"
+    freeze_se_model: true
+
+    st_hidden_dim: 672
+    st_cell_set_len: 128
+    predict_residual: true
+    distributional_loss: energy
+    transformer_backbone_key: llama
+
+    # Adapter-specific parameters
+    adapter_type: bottleneck  # bottleneck, lora, hybrid
+    bottleneck_dim: 64  # Bottleneck dimension for adapter
+    lora_rank: 16  # Rank for LoRA decomposition
+    lora_alpha: 16.0  # Scaling factor for LoRA
+    adapter_dropout: 0.1  # Dropout for adapters
+    freeze_st_model: true  # Freeze ST model base parameters
+    unfreeze_layers: []  # List of layer indices to unfreeze (e.g., [10, 11])
+
+    # Training parameters
+    lr: 1e-4
+    dropout: 0.1
+
+# Training configuration (faster than full training)
+training:
+  max_steps: 20000  # Increased for better convergence (was 10000)
+  batch_size: 32  # Can use larger batch size with adapters
+  lr: 1e-4
+  ckpt_every_n_steps: 5000  # Save less frequently (was 2000)
+  log_every_n_steps: 50
+  val_check_interval: 1000  # Validate less frequently (was 500)
+  precision: "16-mixed"
+  gradient_clip_val: 1.0
+  accumulate_grad_batches: 1
+  early_stopping: true
+  patience: 10  # More patience (was 5)
+
+# Adapter saving configuration
+adapter:
+  save_adapters_only: true  # Save only adapter weights, not full model
+  adapter_save_path: ${output_dir}/${name}/adapters
+  merge_on_save: false  # Whether to merge adapters into base model
+
+# Logging
+wandb:
+  enabled: true
+  project: se-st-adaptertune
+  tags: [adaptertune, parameter-efficient, fine-tuning]
+
+# Multi-task configuration (optional)
+# For fine-tuning on multiple cell types or conditions
+multi_task:
+  enabled: false
+  tasks:
+    - name: task1
+      data_config: null
+      adapter_config:
+        bottleneck_dim: 64
+    - name: task2
+      data_config: null
+      adapter_config:
+        bottleneck_dim: 64
