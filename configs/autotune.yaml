@@ -6,6 +6,10 @@ defaults:
 # Override experiment name
 name: se_st_autotune
 
+# Override model checkpoint to use pretrained model
+model:
+  checkpoint: /workspace/final_model_good.ckpt  # Start from pretrained model
+
 # AutoTune specific configuration
 autotune:
   # Optimization backend (optuna, ray)
@@ -29,7 +33,7 @@ autotune:
 
     st_cell_set_len:
       type: categorical
-      choices: [64, 128, 256]
+      choices: [64, 128]  # Removed 256 - causes shape errors
 
     # Transformer Configuration
     num_attention_heads:
@@ -60,7 +64,7 @@ autotune:
     # Loss Configuration
     distributional_loss:
       type: categorical
-      choices: [energy, sinkhorn, mse]
+      choices: [energy, sinkhorn]  # Removed mse - not supported by geomloss
 
     blur:
       type: uniform
@@ -85,7 +89,7 @@ autotune:
   # Resource allocation per trial
   resources:
     max_steps: 10000  # Increased for better evaluation (was 5000)
-    val_check_interval: 1000  # Less frequent validation (was 500)
+    val_check_interval: 500  # Validation every 500 steps
     devices: 1
     precision: "16-mixed"
 
