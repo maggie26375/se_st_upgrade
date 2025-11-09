@@ -173,7 +173,7 @@ def adaptertune_main(cfg: DictConfig):
 
         logger.info(f"Loading base model from {cfg.model.checkpoint}")
         try:
-            checkpoint = torch.load(cfg.model.checkpoint, map_location='cpu')
+            checkpoint = torch.load(cfg.model.checkpoint, map_location='cpu', weights_only=False)
         except Exception as e:
             raise RuntimeError(
                 f"Failed to load checkpoint from {cfg.model.checkpoint}\n"
