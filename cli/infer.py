@@ -440,7 +440,13 @@ def main():
         default=None,
         help="Path to pickle file with HVG gene names (optional). If provided, uses these genes instead of computing HVG."
     )
-    
+    parser.add_argument(
+        "--adapter-weights",
+        type=str,
+        default=None,
+        help="Path to adapter weights (.pt file) for parameter-efficient fine-tuning models"
+    )
+
     args = parser.parse_args()
     
     # Validate inputs
@@ -468,6 +474,22 @@ def main():
         str(checkpoint_path),
         args.se_model_path
     )
+
+    # Load adapter weights if provided
+    if args.adapter_weights:
+        adapter_path = Path(args.adapter_weights)
+        if not adapter_path.exists():
+            logger.error(f"Adapter weights not found: {adapter_path}")
+            sys.exit(1)
+
+        logger.info(f"Loading adapter weights from {adapter_path}")
+        try:
+            adapter_weights = torch.load(str(adapter_path), map_location='cpu', weights_only=False)
+            model.load_state_dict(adapter_weights, strict=False)
+            logger.info("✅ Adapter weights loaded successfully")
+        except Exception as e:
+            logger.error(f"Failed to load adapter weights: {e}")
+            sys.exit(1)
     
     # Load perturbation features
     pert_features = load_perturbation_features(str(pert_features_path))
