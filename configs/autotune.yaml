@@ -17,7 +17,7 @@ model:
 data:
   kwargs:
     toml_config_path: "/data/starter.toml"
-    perturbation_features_file: "/data/competiton_support_set/ESM2_pert_features.pt"
+    perturbation_features_file: "/data/competition_support_set/ESM2_pert_features.pt"
     num_workers: 4
 
 # AutoTune specific configuration
