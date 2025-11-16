@@ -267,7 +267,14 @@ class PerturbationDataset(Dataset):
         """
         Load a single H5 file and create control/perturbation pairs.
         Now also checks zeroshot configuration to filter cells by split.
+
+        Args:
+            h5_path: Path to H5 file
+            dataset_name: Name of dataset from TOML config
         """
+        # Get the split this dataset is assigned to
+        training_config = self.config.get("training", {})
+        dataset_assigned_split = training_config.get(dataset_name, "train")
         # Load metadata
         cache = H5MetadataCache(
             h5_path,
@@ -363,7 +370,7 @@ class PerturbationDataset(Dataset):
                     # Try exact match first, then case-insensitive
                     ct_split = celltype_splits.get(ct)
                     if ct_split is None:
-                        ct_split = celltype_splits_lower.get(ct.lower(), "train")  # default to train
+                        ct_split = celltype_splits_lower.get(ct.lower(), dataset_assigned_split)  # default to dataset's assigned split
 
                     if ct_split == self.split:
                         all_pert_cells.extend([(idx, batch, ct) for idx in indices])
@@ -391,7 +398,7 @@ class PerturbationDataset(Dataset):
                 # Check split (case-insensitive)
                 ct_split = celltype_splits.get(cell_type)
                 if ct_split is None:
-                    ct_split = celltype_splits_lower.get(cell_type.lower(), "train")
+                    ct_split = celltype_splits_lower.get(cell_type.lower(), dataset_assigned_split)  # default to dataset's assigned split
                 if ct_split != self.split:
                     continue
                 
