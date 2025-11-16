@@ -243,16 +243,15 @@ class PerturbationDataset(Dataset):
             # Check if this dataset should be loaded for current split
             training_config = self.config.get("training", {})
             dataset_split = training_config.get(dataset_name, "train")
-            
-            # For now, always load the dataset if it's marked as "train" in training config
-            # We'll handle zeroshot splits at the cell type level inside _load_and_pair_single_h5
-            if dataset_split == "train":
+
+            # Load dataset only if it matches the current split
+            if dataset_split == self.split:
                 logger.info(f"Loading dataset: {dataset_name} for split: {self.split}")
-                
+
                 # Find H5 files
                 files = self._find_dataset_files(dataset_path)
                 logger.info(f"Found {len(files)} H5 files for {dataset_name}")
-                
+
                 for h5_file in files:
                     logger.info(f"Processing {h5_file.name}...")
                     try:
@@ -262,7 +261,7 @@ class PerturbationDataset(Dataset):
                         import traceback
                         traceback.print_exc()
             else:
-                logger.debug(f"Skipping dataset {dataset_name} (configured for split: {dataset_split})")
+                logger.debug(f"Skipping dataset {dataset_name} (configured for split: {dataset_split}, current split: {self.split})")
     
     def _load_and_pair_single_h5(self, h5_path: str, dataset_name: str):
         """
