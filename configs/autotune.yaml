@@ -9,6 +9,16 @@ name: se_st_autotune
 # Override model checkpoint to use pretrained model
 model:
   checkpoint: /workspace/final_model_good.ckpt  # Start from pretrained model
+  kwargs:
+    se_model_path: "SE-600M"
+    se_checkpoint_path: "SE-600M/se600m_epoch15.ckpt"
+
+# Override data paths
+data:
+  kwargs:
+    toml_config_path: "/data/starter.toml"
+    perturbation_features_file: "/data/ESM2_pert_features.pt"
+    num_workers: 4
 
 # AutoTune specific configuration
 autotune:
